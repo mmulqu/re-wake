@@ -14,13 +14,15 @@ export async function GET(
       FROM master_text mt
       JOIN users u ON mt.user_id = u.clerk_id
       WHERE mt.order_index = ${pageNumber}
-      ORDER BY mt.created_at DESC
-      LIMIT 1;
+      ORDER BY mt.created_at ASC;
     `;
 
-    return NextResponse.json(result.rows[0] || null);
+    return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Error fetching page content:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { message: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 } 

@@ -10,7 +10,7 @@ export default function PageContent() {
   const { user } = useUser();
   const params = useParams();
   const pageNumber = parseInt(params.pageNumber as string);
-  const [content, setContent] = useState<MasterText | null>(null);
+  const [approvedContent, setApprovedContent] = useState<MasterText[]>([]);
   const [pendingContributions, setPendingContributions] = useState<Contribution[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
@@ -24,7 +24,7 @@ export default function PageContent() {
         // Fetch approved content
         const contentRes = await fetch(`/api/pages/${pageNumber}/content`);
         const contentData = await contentRes.json();
-        setContent(contentData);
+        setApprovedContent(contentData);
 
         // Fetch pending contributions
         const pendingRes = await fetch(`/api/pages/${pageNumber}/pending`);
@@ -118,20 +118,42 @@ export default function PageContent() {
           </div>
         </div>
 
-        {/* Page content with sections */}
+        {/* Page content */}
         <div className="prose prose-invert">
           <h1 className="text-3xl font-mono text-[#00ff00] mb-8">
             Page {pageNumber}
           </h1>
 
           {/* Approved Content */}
-          <div className="space-y-6 font-mono text-[#00ff00]">
-            {content?.text || 'This page is open for contribution...'}
+          <div className="space-y-6">
+            {approvedContent.length > 0 ? (
+              approvedContent.map((content, index) => (
+                <div 
+                  key={content.id}
+                  className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6"
+                >
+                  <div className="text-xs text-[#00ff00]/50 mb-2">
+                    Approved • Added by {content.author_name || content.user_id}
+                    <span className="ml-2">
+                      {new Date(content.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="whitespace-pre-wrap">{content.text}</div>
+                </div>
+              ))
+            ) : (
+              <div className="text-[#00ff00]/50 italic">
+                No approved content yet...
+              </div>
+            )}
           </div>
 
           {/* Pending Contributions */}
           {pendingContributions.length > 0 && (
             <div className="mt-8 space-y-4">
+              <h2 className="text-xl font-mono text-red-500 mb-4">
+                Pending Contributions
+              </h2>
               {pendingContributions.map((contribution) => (
                 <div 
                   key={contribution.id}
@@ -143,7 +165,7 @@ export default function PageContent() {
                       {new Date(contribution.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <div className="font-mono text-red-500">
+                  <div className="font-mono text-red-500 whitespace-pre-wrap">
                     {contribution.text}
                   </div>
                 </div>

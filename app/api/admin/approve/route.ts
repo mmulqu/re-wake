@@ -61,6 +61,38 @@ export async function POST(request: Request) {
       WHERE id = ${contributionIdNum};
     `;
 
+    // After approval, send notification
+    await sql`
+      INSERT INTO notifications (
+        user_id,
+        type,
+        message,
+        contribution_id,
+        created_at
+      ) VALUES (
+        ${contribution.rows[0].user_id},
+        'approval',
+        'Your contribution has been approved!',
+        ${contributionIdNum},
+        NOW()
+      );
+    `;
+
+    // Track edit history
+    await sql`
+      INSERT INTO edit_history (
+        contribution_id,
+        user_id,
+        action,
+        created_at
+      ) VALUES (
+        ${contributionIdNum},
+        ${userId},
+        'approved',
+        NOW()
+      );
+    `;
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error approving contribution:', error);
