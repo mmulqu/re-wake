@@ -15,7 +15,7 @@ export default function PagesIndex() {
           {Array.from({ length: numberOfPages }).map((_, i) => {
             const pageNumber = i + startPage;
             return (
-              
+              <a
                 key={i}
                 href={`/pages/${pageNumber}`}
                 className="p-4 border border-[#00ff00]/30 rounded-lg 
