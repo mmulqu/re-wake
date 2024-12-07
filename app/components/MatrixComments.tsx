@@ -2,8 +2,11 @@
 'use client';
 import React from 'react';
 import Giscus from '@giscus/react';
+import { useUser } from '@clerk/nextjs';
 
 export default function MatrixComments() {
+  const { user } = useUser();
+  
   return (
     <div className="w-full border-t border-[#00ff00]/30 pt-8 mt-8">
       <Giscus

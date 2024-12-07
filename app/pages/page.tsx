@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 export default function PagesIndex() {
   const startPage = 3;
@@ -15,7 +16,7 @@ export default function PagesIndex() {
           {Array.from({ length: numberOfPages }).map((_, i) => {
             const pageNumber = i + startPage;
             return (
-              <a
+              <Link
                 key={i}
                 href={`/pages/${pageNumber}`}
                 className="p-4 border border-[#00ff00]/30 rounded-lg 
@@ -25,7 +26,7 @@ export default function PagesIndex() {
                 <div className="text-[#00ff00]/50 text-sm">
                   Open for contribution
                 </div>
-              </a>
+              </Link>
             );
           })}
         </div>

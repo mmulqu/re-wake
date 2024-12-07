@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import ClerkProviderWrapper from './components/auth/ClerkProviderWrapper';
 import AuthHeader from './components/auth/AuthHeader';
+import SplitLayout from './components/SplitLayout';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,18 +33,14 @@ export default function RootLayout({
     <html lang="en" style={{ backgroundColor: 'black' }}>
       <body 
         className={`${geistSans.variable} ${geistMono.variable}`}
-        style={{ 
-          backgroundColor: 'black',
-          color: '#00ff00',
-          minHeight: '100vh'
-        }}
+        style={{ backgroundColor: 'black', color: '#00ff00', minHeight: '100vh' }}
       >
         <div style={{ backgroundColor: 'black', minHeight: '100vh' }}>
           <ClerkProviderWrapper>
             <AuthHeader />
-            <main style={{ backgroundColor: 'black', color: '#00ff00' }}>
+            <SplitLayout>
               {children}
-            </main>
+            </SplitLayout>
           </ClerkProviderWrapper>
         </div>
       </body>
