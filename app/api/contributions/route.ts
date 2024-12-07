@@ -15,6 +15,7 @@ export async function POST(request: Request) {
       INSERT INTO contributions (
         text, 
         user_id, 
+        page_number,
         themes, 
         cultural_references, 
         historical_context,
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
       ) VALUES (
         ${text}, 
         ${userId}, 
+        ${pageNumber},
         ${themes}, 
         ${cultural_references}, 
         ${historical_context},

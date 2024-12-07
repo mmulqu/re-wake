@@ -73,7 +73,7 @@ export default function AdminPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <div className="text-sm text-[#00ff00]/70">
-                    Page {contribution.page_number} • Submitted by {contribution.user_id}
+                    Page {contribution.page_number} • Submitted by {contribution.author_name || contribution.user_id}
                   </div>
                   <div className="mt-1 text-xs text-[#00ff00]/50">
                     {new Date(contribution.created_at).toLocaleString()}

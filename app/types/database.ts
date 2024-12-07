@@ -23,11 +23,13 @@ export interface Contribution {
   id: string;
   text: string;
   user_id: string;
+  page_number: number;
   themes: string[];
   cultural_references: string[];
   historical_context: string;
   is_approved: boolean;
   created_at: Date;
+  author_name?: string;
 }
 
 export interface EditHistory {
