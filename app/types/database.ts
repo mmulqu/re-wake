@@ -10,25 +10,25 @@ export interface User {
 }
 
 export interface MasterText {
-  id: string;
+  id: number;
   text: string;
   order_index: number;
+  approvals: number | null;
   user_id: string;
-  contribution_id: string;
   created_at: Date;
-  approvals: number;
+  contribution_id: number | null;
 }
 
 export interface Contribution {
-  id: string;
+  id: number;
   text: string;
+  themes: any[];
+  cultural_references: any[];
+  historical_context: string | null;
+  created_at: Date;
+  is_approved: boolean;
   user_id: string;
   page_number: number;
-  themes: string[];
-  cultural_references: string[];
-  historical_context: string;
-  is_approved: boolean;
-  created_at: Date;
   author_name?: string;
 }
 
