@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Test if CSS is loading at all */
+.test-style {
+  color: red !important;
+}
+
+/* Force basic styles */
+body {
+  background-color: black !important;
+  color: #00ff00 !important;
+}
+
+html {
+  background-color: black !important;
+}
+
+:root {
+  --font-geist-sans: 'Geist Sans', system-ui, sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
+}
+
+@layer base {
+  html {
+    @apply bg-black;
+  }
+  
+  body {
+    @apply bg-black text-[#00ff00] min-h-screen;
+  }
+}
+
+textarea {
+  @apply border-[#00ff00]/50 bg-black/50 text-[#00ff00] shadow-sm 
+         focus:border-[#00ff00] focus:ring-[#00ff00] placeholder-[#00ff00]/50 
+         font-mono resize-none;
+}
+
+/* Force Clerk elements to use matrix theme */
+.cl-internal-b3fm6y {
+  @apply bg-black text-[#00ff00] !important;
+}
+
+.cl-card, 
+.cl-modalBackdrop,
+.cl-modal {
+  @apply bg-black !important;
+}
+
+.cl-formButtonPrimary {
+  @apply bg-[#00ff00] text-black !important;
+}
+
+.cl-formFieldInput {
+  @apply bg-black border-[#00ff00] text-[#00ff00] !important;
+}
+
+.cl-formFieldLabel,
+.cl-headerTitle,
+.cl-headerSubtitle,
+.cl-dividerText {
+  @apply text-[#00ff00] !important;
+}
