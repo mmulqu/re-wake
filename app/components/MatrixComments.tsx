@@ -1,4 +1,5 @@
 // app/components/MatrixComments.tsx
+'use client';
 import React from 'react';
 import Giscus from '@giscus/react';
 
