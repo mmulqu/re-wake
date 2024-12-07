@@ -6,10 +6,23 @@ export async function POST(request: Request) {
   try {
     const { userId } = auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
-    const { text, pageNumber, themes, cultural_references, historical_context } = await request.json();
+    const body = await request.json();
+    console.log('Received contribution:', body);
+
+    const { text, pageNumber, themes, cultural_references, historical_context } = body;
+
+    if (!text || !pageNumber) {
+      return NextResponse.json(
+        { message: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
 
     const result = await sql`
       INSERT INTO contributions (
@@ -19,21 +32,31 @@ export async function POST(request: Request) {
         themes, 
         cultural_references, 
         historical_context,
-        is_approved
+        is_approved,
+        created_at
       ) VALUES (
         ${text}, 
         ${userId}, 
         ${pageNumber},
-        ${themes}, 
-        ${cultural_references}, 
+        ${JSON.stringify(themes)}, 
+        ${JSON.stringify(cultural_references)}, 
         ${historical_context},
-        false
-      ) RETURNING id;
+        false,
+        NOW()
+      ) RETURNING id, created_at;
     `;
 
-    return NextResponse.json({ id: result.rows[0].id });
+    console.log('Contribution saved:', result.rows[0]);
+
+    return NextResponse.json({
+      id: result.rows[0].id,
+      message: 'Contribution submitted successfully'
+    });
   } catch (error) {
     console.error('Error creating contribution:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { message: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 } 

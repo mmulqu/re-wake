@@ -14,6 +14,8 @@ export default function PageContent() {
   const [pendingContributions, setPendingContributions] = useState<Contribution[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch both approved content and pending contributions
   useEffect(() => {
@@ -36,38 +38,63 @@ export default function PageContent() {
   }, [pageNumber]);
 
   const handleContribute = async () => {
-    if (!user || !editText.trim()) return;
+    if (!user || !editText.trim()) {
+      setError("Please enter some text to contribute");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
 
     try {
+      console.log('Submitting contribution...', {
+        text: editText,
+        pageNumber,
+        userId: user.id,
+      });
+
       const response = await fetch('/api/contributions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           text: editText,
           pageNumber,
           userId: user.id,
-          themes: [], // You could get these from the generator
+          themes: [],
           cultural_references: [],
           historical_context: '',
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to submit contribution');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit contribution');
+      }
 
       // Add the new contribution to the pending list
-      const newContribution = await response.json();
       setPendingContributions(prev => [...prev, {
-        ...newContribution,
+        id: data.id,
         text: editText,
         user_id: user.id,
+        page_number: pageNumber,
         author_name: user.username || user.id,
         created_at: new Date(),
+        themes: [],
+        cultural_references: [],
+        historical_context: '',
+        is_approved: false,
       }]);
 
       setIsEditing(false);
       setEditText('');
     } catch (error) {
       console.error('Error submitting contribution:', error);
+      setError(error instanceof Error ? error.message : 'Failed to submit contribution');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -137,27 +164,45 @@ export default function PageContent() {
                     ✕
                   </button>
                 </div>
+
+                {error && (
+                  <div className="mb-4 p-3 border border-red-500/30 rounded bg-red-500/10 text-red-500">
+                    {error}
+                  </div>
+                )}
+
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
                   placeholder="Paste your generated text here..."
                   className="w-full h-64 bg-black border border-[#00ff00]/30 rounded-lg p-4
                            text-[#00ff00] font-mono focus:border-[#00ff00] mb-4"
+                  disabled={isSubmitting}
                 />
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setIsEditing(false)}
                     className="px-4 py-2 border border-[#00ff00]/30 rounded-md
                              text-[#00ff00] hover:bg-[#00ff00]/10"
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleContribute}
-                    className="bg-[#00ff00] text-black px-4 py-2 rounded-md
-                             hover:bg-[#00ff00]/90"
+                    disabled={isSubmitting || !editText.trim()}
+                    className={`bg-[#00ff00] text-black px-4 py-2 rounded-md
+                             hover:bg-[#00ff00]/90 flex items-center gap-2
+                             ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    Submit for Review
+                    {isSubmitting ? (
+                      <>
+                        <span className="animate-spin">⟳</span>
+                        Submitting...
+                      </>
+                    ) : (
+                      'Submit for Review'
+                    )}
                   </button>
                 </div>
               </div>
