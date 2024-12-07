@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.9",
+    "@giscus/react": "^3.0.0",
     "@vercel/postgres": "^0.10.0",
     "lucide-react": "^0.468.0",
     "next": "14.1.3",
