@@ -24,12 +24,12 @@ export default function AdminPage() {
     }
   };
 
-  const handleApprove = async (contributionId: string) => {
+  const handleApprove = async (contributionId: number) => {
     try {
       const response = await fetch('/api/admin/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contributionId }),
+        body: JSON.stringify({ contributionId: contributionId.toString() }),
       });
       if (response.ok) {
         fetchPendingContributions();
@@ -39,12 +39,12 @@ export default function AdminPage() {
     }
   };
 
-  const handleReject = async (contributionId: string) => {
+  const handleReject = async (contributionId: number) => {
     try {
       const response = await fetch('/api/admin/reject', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contributionId }),
+        body: JSON.stringify({ contributionId: contributionId.toString() }),
       });
       if (response.ok) {
         fetchPendingContributions();

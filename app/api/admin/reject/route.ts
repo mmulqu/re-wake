@@ -34,36 +34,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get the contribution
-    const contribution = await sql`
-      SELECT * FROM contributions WHERE id = ${contributionIdNum};
-    `;
-
-    // Create master text entry
-    await sql`
-      INSERT INTO master_text (
-        text,
-        user_id,
-        contribution_id,
-        created_at
-      ) VALUES (
-        ${contribution.rows[0].text},
-        ${contribution.rows[0].user_id},
-        ${contributionIdNum},
-        NOW()
-      );
-    `;
-
-    // Update contribution status
+    // Update contribution status to rejected
     await sql`
       UPDATE contributions 
-      SET is_approved = true 
+      SET is_approved = false 
       WHERE id = ${contributionIdNum};
     `;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error approving contribution:', error);
+    console.error('Error rejecting contribution:', error);
     return NextResponse.json(
       { message: 'Internal Server Error' },
       { status: 500 }
