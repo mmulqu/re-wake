@@ -14,13 +14,25 @@ export default function PageContent() {
   const [pendingContributions, setPendingContributions] = useState<Contribution[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
-  const [selectedSection, setSelectedSection] = useState<number | null>(null);
 
   // Fetch both approved content and pending contributions
   useEffect(() => {
-    // API calls to fetch:
-    // 1. Current approved content
-    // 2. Pending contributions for this page
+    const fetchContent = async () => {
+      try {
+        // Fetch approved content
+        const contentRes = await fetch(`/api/pages/${pageNumber}/content`);
+        const contentData = await contentRes.json();
+        setContent(contentData);
+
+        // Fetch pending contributions
+        const pendingRes = await fetch(`/api/pages/${pageNumber}/pending`);
+        const pendingData = await pendingRes.json();
+        setPendingContributions(pendingData);
+      } catch (error) {
+        console.error('Error fetching page data:', error);
+      }
+    };
+    fetchContent();
   }, [pageNumber]);
 
   const handleContribute = async () => {
@@ -29,16 +41,12 @@ export default function PageContent() {
     try {
       const response = await fetch('/api/contributions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: editText,
           pageNumber,
-          sectionIndex: selectedSection,
           userId: user.id,
-          // You could also grab these from the generator state
-          themes: [],
+          themes: [], // You could get these from the generator
           cultural_references: [],
           historical_context: '',
         }),
@@ -46,8 +54,16 @@ export default function PageContent() {
 
       if (!response.ok) throw new Error('Failed to submit contribution');
 
-      // Refresh pending contributions
-      // Add new contribution to pending list
+      // Add the new contribution to the pending list
+      const newContribution = await response.json();
+      setPendingContributions(prev => [...prev, {
+        ...newContribution,
+        text: editText,
+        user_id: user.id,
+        author_name: user.username || user.id,
+        created_at: new Date(),
+      }]);
+
       setIsEditing(false);
       setEditText('');
     } catch (error) {
@@ -80,6 +96,33 @@ export default function PageContent() {
           <h1 className="text-3xl font-mono text-[#00ff00] mb-8">
             Page {pageNumber}
           </h1>
+
+          {/* Approved Content */}
+          <div className="space-y-6 font-mono text-[#00ff00]">
+            {content?.text || 'This page is open for contribution...'}
+          </div>
+
+          {/* Pending Contributions */}
+          {pendingContributions.length > 0 && (
+            <div className="mt-8 space-y-4">
+              {pendingContributions.map((contribution) => (
+                <div 
+                  key={contribution.id}
+                  className="border border-red-500/30 rounded-lg p-4"
+                >
+                  <div className="text-xs text-red-500/70 mb-2">
+                    Pending Review • Submitted by {contribution.author_name || contribution.user_id}
+                    <span className="ml-2">
+                      {new Date(contribution.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="font-mono text-red-500">
+                    {contribution.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Editing Interface */}
           {isEditing && (
@@ -120,36 +163,9 @@ export default function PageContent() {
               </div>
             </div>
           )}
-
-          {/* Approved Content */}
-          <div className="space-y-6">
-            {content?.text || 'This page is open for contribution...'}
-          </div>
-
-          {/* Pending Contributions */}
-          {pendingContributions.length > 0 && (
-            <div className="mt-8 border-t border-[#00ff00]/30 pt-8">
-              <h2 className="text-xl font-mono text-[#00ff00] mb-4">Pending Contributions</h2>
-              <div className="space-y-4">
-                {pendingContributions.map((contribution) => (
-                  <div 
-                    key={contribution.id}
-                    className="border border-[#00ff00]/30 rounded-lg p-4"
-                  >
-                    <div className="text-[#00ff00]/70 text-sm mb-2">
-                      Submitted by {contribution.user_id} • Awaiting Review
-                    </div>
-                    <div className="font-mono text-[#00ff00]">
-                      {contribution.text}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
         
-        <MatrixComments />
+        <MatrixComments pageNumber={pageNumber} />
       </div>
     </div>
   );
