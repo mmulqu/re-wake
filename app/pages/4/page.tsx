@@ -1,6 +1,6 @@
 // app/pages/1/page.tsx
 'use client';
-import MatrixComments from '../../../components/MatrixComments';
+import MatrixComments from '@/app/components/MatrixComments';
 
 export default function Page1() {
   return (
