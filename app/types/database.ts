@@ -18,6 +18,9 @@ export interface MasterText {
   created_at: Date;
   contribution_id: number | null;
   author_name?: string;
+  approved_by?: string;
+  approved_at?: Date;
+  approver_name?: string;
 }
 
 export interface Contribution {
