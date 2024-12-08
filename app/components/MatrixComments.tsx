@@ -1,6 +1,6 @@
 // app/components/MatrixComments.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Giscus from '@giscus/react';
 
 interface MatrixCommentsProps {
@@ -9,14 +9,13 @@ interface MatrixCommentsProps {
 
 // Map page numbers to discussion numbers
 const discussionMap: Record<number, number> = {
-  3: 8,  // Page 3 uses Discussion #1
-  4: 9,  // Page 4 uses Discussion #2
+  3: 8,  // Page 3 uses Discussion #8
+  4: 9,  // Page 4 uses Discussion #9
   // Add more as needed
 };
 
 export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
   const [showDiscussions, setShowDiscussions] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   return (
     <div className="w-full border-t border-[#00ff00]/30 pt-8 mt-8">
@@ -37,9 +36,9 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
             repoId="R_kgDONaHjWA"
             category="Ideas"
             categoryId="DIC_kwDONaHjWM4ClAFi"
-            mapping="number"  // Changed to use discussion numbers
-            term="1"  // Not used with number mapping
-            discussionTerm={discussionMap[pageNumber]?.toString()}  // Use the mapped discussion number
+            mapping="number"
+            term="1"
+            number={discussionMap[pageNumber]}
             theme="dark"
             lang="en"
             reactionsEnabled="1"
