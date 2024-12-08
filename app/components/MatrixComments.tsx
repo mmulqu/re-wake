@@ -27,9 +27,10 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
           <Giscus
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
+            category="Announcements"
             categoryId="DIC_kwDONaHjWM4ClAFi"
-            mapping="title"
-            term={`Re-Wake Page ${pageNumber}`}
+            mapping="pathname"
+            term={`pages/${pageNumber}`}
             strict="1"
             reactionsEnabled="1"
             emitMetadata="0"
