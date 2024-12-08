@@ -15,6 +15,28 @@ interface ApprovalMenuProps {
   onReject: () => void;
 }
 
+interface PreviewProps {
+  contribution: Contribution;
+  existingText: MasterText[];
+  onConfirm: () => Promise<void>;
+  onCancel: () => void;
+}
+
+interface DraggableProps {
+  contribution: Contribution;
+  onPositionChange: (newPosition: {
+    previousTextId: number | null;
+    position: number;
+  }) => void;
+}
+
+interface PreviewPosition {
+  x: number;
+  y: number;
+  previousTextId: number | null;
+  position: number;
+}
+
 const approveContribution = async (contributionId: number) => {
   try {
     const response = await fetch(`/api/contributions/${contributionId}/approve`, {
@@ -99,20 +121,85 @@ const InsertionPreview = ({
   </div>
 );
 
-const PreviewMode = ({
+const PreviewMode: React.FC<PreviewProps> = ({
   contribution,
   existingText,
   onConfirm,
   onCancel
-}: PreviewProps) => {
-  // Preview rendering logic
+}) => {
+  const [previewPosition, setPreviewPosition] = useState<PreviewPosition | null>(null);
+
+  return (
+    <div className="relative">
+      {existingText.map((text) => (
+        <div 
+          key={text.id}
+          className="font-mono text-[#00ff00]/70 cursor-pointer"
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const position = e.clientX - rect.left;
+            setPreviewPosition({
+              x: e.clientX,
+              y: rect.top,
+              previousTextId: text.id,
+              position
+            });
+          }}
+        >
+          {text.text}
+          {previewPosition?.previousTextId === text.id && (
+            <InsertionPreview
+              position={{ x: previewPosition.x, y: previewPosition.y }}
+              text={contribution.text}
+              beforeText={text.text.slice(0, previewPosition.position)}
+              afterText={text.text.slice(previewPosition.position)}
+            />
+          )}
+        </div>
+      ))}
+      <div className="mt-4 flex gap-2 justify-end">
+        <button
+          onClick={onCancel}
+          className="px-3 py-1 bg-red-500/10 text-red-500 rounded"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onConfirm}
+          className="px-3 py-1 bg-[#00ff00]/10 text-[#00ff00] rounded"
+          disabled={!previewPosition}
+        >
+          Confirm Position
+        </button>
+      </div>
+    </div>
+  );
 };
 
-const DraggableContribution = ({
+const DraggableContribution: React.FC<DraggableProps> = ({
   contribution,
   onPositionChange
-}: DraggableProps) => {
-  // Drag and drop logic
+}) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true);
+    e.dataTransfer.setData('text/plain', contribution.id.toString());
+  };
+
+  return (
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={() => setIsDragging(false)}
+      className={`cursor-move ${isDragging ? 'opacity-50' : ''}`}
+    >
+      <div className="font-mono text-[#00ff00] p-4 border border-[#00ff00]/30 rounded">
+        {contribution.text}
+      </div>
+    </div>
+  );
 };
 
 export default function PageContent() {
