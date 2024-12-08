@@ -6,6 +6,8 @@ import MatrixComments from '@/app/components/MatrixComments';
 import { useState, useEffect } from 'react';
 import type { MasterText, Contribution } from '@/app/types/database';
 import Head from 'next/head';
+import type { UserResource } from '@clerk/types';
+import type { UserMetadata } from '@/app/types/database';
 
 interface ApprovalMenuProps {
   text: string;
@@ -154,7 +156,7 @@ export default function PageContent() {
     }
   };
 
-  const isAdmin = user?.publicMetadata?.role === 'admin';
+  const isAdmin = (user as UserResource & { publicMetadata: UserMetadata })?.publicMetadata?.role === 'admin';
 
   return (
     <>

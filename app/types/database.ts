@@ -1,3 +1,7 @@
+export interface UserMetadata {
+  role?: 'admin' | 'user';
+}
+
 export interface User {
   id: string;
   username: string;
@@ -7,6 +11,7 @@ export interface User {
   display_name: string;
   created_at: Date;
   last_login: Date;
+  publicMetadata?: UserMetadata;
 }
 
 export interface MasterText {
