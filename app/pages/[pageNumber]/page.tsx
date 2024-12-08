@@ -24,6 +24,11 @@ export default function PageContent() {
         // Fetch approved content
         const contentRes = await fetch(`/api/pages/${pageNumber}/content`);
         const contentData = await contentRes.json();
+        console.log('Fetched content:', {
+          pageNumber,
+          contentData,
+          status: contentRes.status
+        });
         setApprovedContent(contentData);
 
         // Fetch pending contributions
