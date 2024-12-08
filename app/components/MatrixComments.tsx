@@ -12,7 +12,6 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
 
   return (
     <div className="w-full border-t border-[#00ff00]/30 pt-8 mt-8">
-      {/* Toggle button for discussions */}
       <button
         onClick={() => setShowDiscussions(!showDiscussions)}
         className="mb-4 px-4 py-2 bg-[#00ff00]/10 text-[#00ff00] rounded-md 
@@ -23,20 +22,18 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
         ({pageNumber ? `Page ${pageNumber}` : 'General'})
       </button>
 
-      {/* Discussions panel */}
       {showDiscussions && (
         <div className="min-h-[600px] bg-black/50 rounded-lg p-4">
           <Giscus
-            id={`comments-${pageNumber}`}
+            id={`page-${pageNumber}`}
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
             category="General"
             categoryId="DIC_kwDONaHjWM4ClAFi"
-            mapping="specific"
+            mapping="pathname"
             term={`page-${pageNumber}`}
-            strict="0"
             reactionsEnabled="1"
-            emitMetadata="0"
+            emitMetadata="1"
             inputPosition="top"
             theme="transparent_dark"
             loading="eager"
