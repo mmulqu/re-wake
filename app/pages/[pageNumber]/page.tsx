@@ -7,6 +7,55 @@ import { useState, useEffect } from 'react';
 import type { MasterText, Contribution } from '@/app/types/database';
 import Head from 'next/head';
 
+interface ApprovalMenuProps {
+  text: string;
+  onApprove: () => Promise<void>;
+  onReject: () => void;
+}
+
+const approveContribution = async (contributionId: number) => {
+  try {
+    const response = await fetch(`/api/contributions/${contributionId}/approve`, {
+      method: 'POST'
+    });
+    if (!response.ok) throw new Error('Failed to approve contribution');
+    return response.json();
+  } catch (error) {
+    console.error('Error approving contribution:', error);
+    throw error;
+  }
+};
+
+const rejectContribution = async (contributionId: number) => {
+  try {
+    const response = await fetch(`/api/contributions/${contributionId}/reject`, {
+      method: 'POST'
+    });
+    if (!response.ok) throw new Error('Failed to reject contribution');
+    return response.json();
+  } catch (error) {
+    console.error('Error rejecting contribution:', error);
+    throw error;
+  }
+};
+
+const ApprovalMenu: React.FC<ApprovalMenuProps> = ({ text, onApprove, onReject }) => (
+  <div className="absolute bg-black border border-[#00ff00]/30 rounded-md p-2 shadow-lg">
+    <button 
+      onClick={onApprove}
+      className="block w-full text-left px-3 py-1 hover:bg-[#00ff00]/10 text-[#00ff00]"
+    >
+      Approve
+    </button>
+    <button 
+      onClick={onReject}
+      className="block w-full text-left px-3 py-1 hover:bg-red-500/10 text-red-500"
+    >
+      Reject
+    </button>
+  </div>
+);
+
 export default function PageContent() {
   const { user } = useUser();
   const params = useParams();
@@ -105,22 +154,7 @@ export default function PageContent() {
     }
   };
 
-  const ApprovalMenu = ({ text, onApprove, onReject }) => (
-    <div className="absolute bg-black border border-[#00ff00]/30 rounded-md p-2 shadow-lg">
-      <button 
-        onClick={onApprove}
-        className="block w-full text-left px-3 py-1 hover:bg-[#00ff00]/10 text-[#00ff00]"
-      >
-        Approve
-      </button>
-      <button 
-        onClick={onReject}
-        className="block w-full text-left px-3 py-1 hover:bg-red-500/10 text-red-500"
-      >
-        Reject
-      </button>
-    </div>
-  );
+  const isAdmin = user?.publicMetadata?.role === 'admin';
 
   return (
     <>
@@ -180,8 +214,7 @@ export default function PageContent() {
                       <ApprovalMenu 
                         text={selectedText}
                         onApprove={async () => {
-                          // Call API to approve
-                          await approveEdit(content.id, selectedText);
+                          await approveContribution(content.id);
                           setSelectedText(null);
                         }}
                         onReject={() => setSelectedText(null)}
@@ -215,7 +248,7 @@ export default function PageContent() {
                       By {contribution.author_name} • {new Date(contribution.created_at).toLocaleString()}
                     </div>
                     <div className="whitespace-pre-wrap">{contribution.text}</div>
-                    {user.role === 'admin' && (
+                    {isAdmin && (
                       <div className="mt-4 flex gap-2">
                         <button 
                           onClick={() => approveContribution(contribution.id)}
