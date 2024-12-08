@@ -7,6 +7,10 @@ export async function GET(
 ) {
   try {
     const pageNumber = parseInt(params.pageNumber);
+    
+    // Log for debugging
+    console.log('Fetching content for page:', pageNumber);
+    
     const result = await sql`
       SELECT 
         mt.id,
@@ -23,11 +27,14 @@ export async function GET(
       ORDER BY mt.created_at ASC;
     `;
 
+    // Log the result
+    console.log('Query result:', result.rows);
+
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Error fetching page content:', error);
     return NextResponse.json(
-      { message: 'Internal Server Error' },
+      { message: 'Internal Server Error', error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
