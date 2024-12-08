@@ -1,6 +1,6 @@
 // app/components/MatrixComments.tsx
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Giscus from '@giscus/react';
 
 interface MatrixCommentsProps {
@@ -9,6 +9,20 @@ interface MatrixCommentsProps {
 
 export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
   const [showDiscussions, setShowDiscussions] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (showDiscussions) {
+      console.log('Loading discussions for Page', pageNumber);
+      // Add a timeout to check if Giscus loads
+      const timer = setTimeout(() => {
+        const giscusFrame = document.querySelector('iframe.giscus-frame');
+        console.log('Giscus frame found:', !!giscusFrame);
+        setIsLoading(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showDiscussions, pageNumber]);
 
   return (
     <div className="w-full border-t border-[#00ff00]/30 pt-8 mt-8">
@@ -23,13 +37,12 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
       </button>
 
       {showDiscussions && (
-        <div 
-          className="min-h-[600px] bg-black/50 rounded-lg p-4"
-          onLoad={() => console.log('Giscus container loaded')}
-        >
-          <div className="text-[#00ff00] mb-4">
-            Loading discussions for Page {pageNumber}...
-          </div>
+        <div className="min-h-[600px] bg-black/50 rounded-lg p-4">
+          {isLoading && (
+            <div className="text-[#00ff00] mb-4">
+              Loading discussions for Page {pageNumber}...
+            </div>
+          )}
           <Giscus
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
@@ -39,7 +52,6 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
             term={`Page ${pageNumber}`}
             theme="dark"
             lang="en"
-            onLoad={() => console.log('Giscus loaded')}
           />
         </div>
       )}
