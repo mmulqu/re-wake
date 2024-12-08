@@ -23,7 +23,7 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
       </button>
 
       {showDiscussions && (
-        <div className="min-h-[600px] bg-black/50 rounded-lg p-4">
+        <div className="min-h-[600px] rounded-lg p-4 bg-transparent">
           <Giscus
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
@@ -33,7 +33,7 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
             reactionsEnabled="1"
             emitMetadata="1"
             inputPosition="top"
-            theme="dark_high_contrast"
+            theme="transparent_dark"
             lang="en"
             loading="lazy"
           />
