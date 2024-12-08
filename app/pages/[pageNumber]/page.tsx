@@ -131,7 +131,7 @@ const PreviewMode: React.FC<PreviewProps> = ({
 
   return (
     <div className="relative">
-      {existingText.map((text) => (
+      {existingText.map((text, index) => (
         <div 
           key={text.id}
           className="font-mono text-[#00ff00]/70 cursor-pointer"
@@ -353,7 +353,9 @@ export default function PageContent() {
                         
                         {/* Show pending contributions that would be inserted after this content */}
                         {pendingContributions
-                          .filter(pc => pc.previousTextId === content.id)
+                          .filter(pc => pc.previousTextId === content.id || 
+                            // If no previousTextId is set, show at the end of the first content block
+                            (pc.previousTextId === null && index === 0))
                           .map(contribution => (
                             <div key={contribution.id} className="relative mt-2 pl-4 border-l-2 border-orange-500/30">
                               <div className="text-xs text-orange-500/70 mb-1">

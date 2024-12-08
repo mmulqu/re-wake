@@ -39,6 +39,8 @@ export interface Contribution {
   user_id: string;
   page_number: number;
   author_name?: string;
+  previousTextId?: number | null;
+  insertionPoint?: number;
 }
 
 export interface EditHistory {
