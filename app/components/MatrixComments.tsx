@@ -24,24 +24,26 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
       </button>
 
       {/* Discussions panel */}
-      <div className={`transition-all duration-300 ${showDiscussions ? 'max-h-[800px]' : 'max-h-0'} overflow-hidden`}>
-        <Giscus
-          id={`comments-${pageNumber}`}
-          repo="mmulqu/re-wake"
-          repoId="R_kgDONaHjWA"
-          category="General"
-          categoryId="DIC_kwDONaHjWM4ClAFi"
-          mapping="specific"
-          term={`page-${pageNumber}`}
-          strict="1"
-          reactionsEnabled="1"
-          emitMetadata="1"
-          inputPosition="top"
-          theme="dark_dimmed"
-          loading="lazy"
-          lang="en"
-        />
-      </div>
+      {showDiscussions && (
+        <div className="min-h-[600px] bg-black/50 rounded-lg p-4">
+          <Giscus
+            id={`comments-${pageNumber}`}
+            repo="mmulqu/re-wake"
+            repoId="R_kgDONaHjWA"
+            category="General"
+            categoryId="DIC_kwDONaHjWM4ClAFi"
+            mapping="specific"
+            term={`page-${pageNumber}`}
+            strict="0"
+            reactionsEnabled="1"
+            emitMetadata="0"
+            inputPosition="top"
+            theme="transparent_dark"
+            loading="eager"
+            lang="en"
+          />
+        </div>
+      )}
     </div>
   );
 }
