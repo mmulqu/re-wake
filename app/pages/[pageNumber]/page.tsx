@@ -342,45 +342,48 @@ export default function PageContent() {
             {/* Approved Content */}
             <div className="space-y-6">
               {approvedContent.length > 0 ? (
-                approvedContent.map((content) => (
+                approvedContent.map((content, index) => (
                   <div key={content.id} className="relative">
-                    <div 
-                      className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6 cursor-text"
-                      onClick={(e) => {
-                        // Get cursor position relative to this text block
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const relativeX = e.clientX - rect.left;
-                        const textWidth = e.currentTarget.offsetWidth;
-                        const position = Math.floor((relativeX / textWidth) * content.text.length);
-
-                        setInsertionPoint({
-                          position,
-                          previousTextId: content.id
-                        });
-
-                        // Visual indicator
-                        const cursor = document.createElement('div');
-                        cursor.className = 'absolute w-0.5 h-16 bg-[#00ff00] animate-pulse';
-                        cursor.style.left = `${e.clientX}px`;
-                        cursor.style.top = `${rect.top}px`;
-                        document.body.appendChild(cursor);
-                        setTimeout(() => cursor.remove(), 1000);
-
-                        // Show position indicator
-                        const indicator = document.createElement('div');
-                        indicator.className = 'fixed bg-[#00ff00]/90 text-black px-2 py-1 rounded text-xs';
-                        indicator.style.left = `${e.clientX}px`;
-                        indicator.style.top = `${rect.top - 20}px`;
-                        indicator.textContent = 'Insertion point set';
-                        document.body.appendChild(indicator);
-                        setTimeout(() => indicator.remove(), 1000);
-                      }}
-                    >
+                    <div className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6 cursor-text">
                       <div className="text-xs text-[#00ff00]/50 mb-2">
                         Added by {content.author_name}
                       </div>
                       <div className="whitespace-pre-wrap relative">
                         {content.text}
+                        
+                        {/* Show pending contributions that would be inserted after this content */}
+                        {pendingContributions
+                          .filter(pc => pc.previousTextId === content.id)
+                          .map(contribution => (
+                            <div key={contribution.id} className="relative mt-2 pl-4 border-l-2 border-orange-500/30">
+                              <div className="text-xs text-orange-500/70 mb-1">
+                                Pending • By {contribution.author_name}
+                                {isAdmin && (
+                                  <div className="absolute right-0 top-0 flex gap-2">
+                                    <button
+                                      onClick={() => approveContribution(contribution.id)}
+                                      className="px-2 py-0.5 text-xs bg-[#00ff00]/10 text-[#00ff00] rounded"
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      onClick={() => rejectContribution(contribution.id)}
+                                      className="px-2 py-0.5 text-xs bg-red-500/10 text-red-500 rounded"
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="font-mono text-orange-500">
+                                {contribution.text}
+                              </div>
+                              {/* Show insertion cursor */}
+                              <div className="absolute left-0 top-0 w-0.5 h-full bg-orange-500/30 animate-pulse" />
+                            </div>
+                          ))}
+
+                        {/* Show insertion point cursor */}
                         {insertionPoint?.previousTextId === content.id && (
                           <div 
                             className="absolute w-0.5 h-full bg-[#00ff00]/30 animate-pulse"
