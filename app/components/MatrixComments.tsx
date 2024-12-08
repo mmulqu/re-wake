@@ -28,14 +28,14 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
             categoryId="DIC_kwDONaHjWM4ClAFi"
-            mapping="og:title"
-            strict="0"
+            mapping="title"
+            term={`Re-Wake Page ${pageNumber}`}
+            strict="1"
             reactionsEnabled="1"
-            emitMetadata="1"
+            emitMetadata="0"
             inputPosition="top"
             theme="transparent_dark"
             lang="en"
-            loading="lazy"
           />
         </div>
       )}
