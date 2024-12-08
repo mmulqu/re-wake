@@ -1,12 +1,5 @@
 {
   "defaultCommentOrder": "newest",
   "origins": ["https://re-wake.vercel.app"],
-  "theme": {
-    "default": "transparent_dark",
-    "colors": {
-      "primary": "#00ff00",
-      "comment": "#00ff00",
-      "background": "#000000"
-    }
-  }
+  "theme": "preferred_color_scheme"
 } 

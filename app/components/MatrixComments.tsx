@@ -25,18 +25,16 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
       {showDiscussions && (
         <div className="min-h-[600px] bg-black/50 rounded-lg p-4">
           <Giscus
-            id={`page-${pageNumber}`}
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
             category="General"
             categoryId="DIC_kwDONaHjWM4ClAFi"
             mapping="pathname"
-            term={`page-${pageNumber}`}
+            strict="0"
             reactionsEnabled="1"
-            emitMetadata="1"
-            inputPosition="top"
-            theme="transparent_dark"
-            loading="eager"
+            emitMetadata="0"
+            inputPosition="bottom"
+            theme="preferred_color_scheme"
             lang="en"
           />
         </div>
