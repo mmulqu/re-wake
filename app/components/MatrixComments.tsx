@@ -23,7 +23,13 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
       </button>
 
       {showDiscussions && (
-        <div className="min-h-[600px] bg-black/50 rounded-lg p-4">
+        <div 
+          className="min-h-[600px] bg-black/50 rounded-lg p-4"
+          onLoad={() => console.log('Giscus container loaded')}
+        >
+          <div className="text-[#00ff00] mb-4">
+            Loading discussions for Page {pageNumber}...
+          </div>
           <Giscus
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
@@ -31,12 +37,9 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
             categoryId="DIC_kwDONaHjWM4ClAFi"
             mapping="specific"
             term={`Page ${pageNumber}`}
-            strict="0"
-            reactionsEnabled="1"
-            emitMetadata="0"
-            inputPosition="bottom"
             theme="dark"
             lang="en"
+            onLoad={() => console.log('Giscus loaded')}
           />
         </div>
       )}
