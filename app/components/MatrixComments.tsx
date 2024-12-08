@@ -29,7 +29,8 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
             repoId="R_kgDONaHjWA"
             category="Ideas"
             categoryId="DIC_kwDONaHjWM4ClAFi"
-            mapping="pathname"
+            mapping="specific"
+            term={`Page ${pageNumber}`}
             strict="0"
             reactionsEnabled="1"
             emitMetadata="0"
