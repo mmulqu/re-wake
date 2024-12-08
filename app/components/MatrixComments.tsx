@@ -27,14 +27,14 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
           <Giscus
             repo="mmulqu/re-wake"
             repoId="R_kgDONaHjWA"
-            category="General"
+            category="Ideas"
             categoryId="DIC_kwDONaHjWM4ClAFi"
             mapping="pathname"
             strict="0"
             reactionsEnabled="1"
             emitMetadata="0"
             inputPosition="bottom"
-            theme="preferred_color_scheme"
+            theme="dark"
             lang="en"
           />
         </div>
