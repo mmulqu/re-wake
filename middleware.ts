@@ -1,4 +1,5 @@
 import { authMiddleware } from "@clerk/nextjs/server";
+import { syncUserWithDatabase } from "./app/lib/auth";
 
 // Load environment variables
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -10,7 +11,12 @@ if (!publishableKey || !secretKey) {
 
 export default authMiddleware({
   publicRoutes: ["/"],
-  ignoredRoutes: ["/api/generate"]
+  ignoredRoutes: ["/api/generate"],
+  afterAuth: async (auth, req, evt) => {
+    if (auth.userId) {
+      await syncUserWithDatabase();
+    }
+  }
 });
 
 export const config = {

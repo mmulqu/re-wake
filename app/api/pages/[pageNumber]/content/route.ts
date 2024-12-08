@@ -9,7 +9,13 @@ export async function GET(
     const pageNumber = parseInt(params.pageNumber);
     const result = await sql`
       SELECT 
-        mt.*,
+        mt.id,
+        mt.text,
+        mt.order_index,
+        mt.approvals,
+        mt.user_id,
+        mt.created_at,
+        mt.contribution_id,
         u.display_name as author_name
       FROM master_text mt
       JOIN users u ON mt.user_id = u.clerk_id

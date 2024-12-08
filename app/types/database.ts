@@ -17,6 +17,7 @@ export interface MasterText {
   user_id: string;
   created_at: Date;
   contribution_id: number | null;
+  author_name?: string;
 }
 
 export interface Contribution {
