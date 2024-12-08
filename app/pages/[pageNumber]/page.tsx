@@ -346,47 +346,42 @@ export default function PageContent() {
                   <div key={content.id} className="relative">
                     <div 
                       className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6"
-                      onClick={(e) => {
-                        // Get cursor position relative to this text block
-                        const selection = window.getSelection();
-                        if (selection && selection.rangeCount > 0) {
-                          const range = selection.getRangeAt(0);
-                          const position = range.startOffset;
-                          setInsertionPoint({
-                            position,
-                            previousTextId: content.id
-                          });
-                          
-                          // Visual indicator of insertion point
-                          const cursor = document.createElement('div');
-                          cursor.className = 'absolute w-0.5 h-5 bg-[#00ff00] animate-pulse';
-                          cursor.style.left = `${e.clientX}px`;
-                          cursor.style.top = `${e.clientY}px`;
-                          document.body.appendChild(cursor);
-                          setTimeout(() => cursor.remove(), 1000);
+                      onMouseUp={(e) => {
+                        if (isAdmin) {
+                          const selection = window.getSelection()?.toString();
+                          if (selection) {
+                            setSelectedText(selection);
+                            // Position menu near mouse
+                            const menu = document.createElement('div');
+                            menu.style.position = 'absolute';
+                            menu.style.left = `${e.clientX}px`;
+                            menu.style.top = `${e.clientY}px`;
+                            document.body.appendChild(menu);
+                            setTimeout(() => menu.remove(), 100);
+                          }
                         }
                       }}
                     >
                       <div className="text-xs text-[#00ff00]/50 mb-2">
                         Added by {content.author_name}
-                        {content.approver_name && (
-                          <span className="ml-2">• Approved by {content.approver_name}</span>
-                        )}
-                        <span className="ml-2">
-                          {new Date(content.created_at).toLocaleString()}
-                        </span>
                       </div>
                       <div className="whitespace-pre-wrap">{content.text}</div>
                     </div>
                     {selectedText && (
-                      <ApprovalMenu 
-                        text={selectedText}
-                        onApprove={async () => {
-                          await approveContribution(content.id);
-                          setSelectedText(null);
-                        }}
-                        onReject={() => setSelectedText(null)}
-                      />
+                      <div className="absolute top-0 right-0 mt-2 mr-2">
+                        <ApprovalMenu 
+                          text={selectedText}
+                          onApprove={async () => {
+                            await approveContribution(content.id);
+                            setSelectedText(null);
+                            // Refresh content
+                            const contentRes = await fetch(`/api/pages/${pageNumber}/content`);
+                            const contentData = await contentRes.json();
+                            setApprovedContent(contentData);
+                          }}
+                          onReject={() => setSelectedText(null)}
+                        />
+                      </div>
                     )}
                   </div>
                 ))
@@ -411,50 +406,39 @@ export default function PageContent() {
                         ? 'border-[#00ff00]/30 text-[#00ff00]'
                         : isAdmin 
                           ? 'border-yellow-500/30 text-yellow-500'
-                          : 'hidden'  // Hide other users' contributions from non-admins
+                          : 'hidden'
                     }`}
                   >
                     <div className="text-xs opacity-70 mb-2">
-                      By {contribution.author_name} • {new Date(contribution.created_at).toLocaleString()}
-                      {isAdmin && contribution.user_id !== user.id && (
-                        <span className="ml-2 text-yellow-500">(Pending Review)</span>
-                      )}
+                      By {contribution.author_name}
                     </div>
                     <div 
                       className="whitespace-pre-wrap"
-                      onMouseUp={() => {
+                      onMouseUp={(e) => {
                         if (isAdmin) {
                           const selection = window.getSelection()?.toString();
-                          if (selection) setSelectedText(selection);
+                          if (selection) {
+                            setSelectedText(selection);
+                            // Position menu near mouse
+                            const menu = document.createElement('div');
+                            menu.style.position = 'absolute';
+                            menu.style.left = `${e.clientX}px`;
+                            menu.style.top = `${e.clientY}px`;
+                            document.body.appendChild(menu);
+                            setTimeout(() => menu.remove(), 100);
+                          }
                         }
                       }}
                     >
                       {contribution.text}
                     </div>
-                    
-                    {/* Approval Menu for selected text */}
-                    {isAdmin && selectedText && (
-                      <ApprovalMenu 
-                        text={selectedText}
-                        onApprove={async () => {
-                          await approveContribution(contribution.id);
-                          // Refresh pending contributions
-                          const pendingRes = await fetch(`/api/pages/${pageNumber}/pending`);
-                          const pendingData = await pendingRes.json();
-                          setPendingContributions(pendingData);
-                          setSelectedText(null);
-                        }}
-                        onReject={() => setSelectedText(null)}
-                      />
-                    )}
-
-                    {/* Quick approve/reject buttons */}
-                    {isAdmin && (
-                      <div className="mt-4 flex gap-2">
-                        <button 
-                          onClick={async () => {
+                    {selectedText && (
+                      <div className="absolute top-0 right-0 mt-2 mr-2">
+                        <ApprovalMenu 
+                          text={selectedText}
+                          onApprove={async () => {
                             await approveContribution(contribution.id);
-                            // Refresh both approved and pending content
+                            // Refresh both lists
                             const [contentRes, pendingRes] = await Promise.all([
                               fetch(`/api/pages/${pageNumber}/content`),
                               fetch(`/api/pages/${pageNumber}/pending`)
@@ -465,23 +449,10 @@ export default function PageContent() {
                             ]);
                             setApprovedContent(contentData);
                             setPendingContributions(pendingData);
+                            setSelectedText(null);
                           }}
-                          className="px-3 py-1 bg-[#00ff00]/10 text-[#00ff00] rounded hover:bg-[#00ff00]/20"
-                        >
-                          Approve
-                        </button>
-                        <button 
-                          onClick={async () => {
-                            await rejectContribution(contribution.id);
-                            // Refresh pending contributions
-                            const pendingRes = await fetch(`/api/pages/${pageNumber}/pending`);
-                            const pendingData = await pendingRes.json();
-                            setPendingContributions(pendingData);
-                          }}
-                          className="px-3 py-1 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20"
-                        >
-                          Reject
-                        </button>
+                          onReject={() => setSelectedText(null)}
+                        />
                       </div>
                     )}
                   </div>
