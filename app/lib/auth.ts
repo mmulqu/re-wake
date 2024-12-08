@@ -9,25 +9,29 @@ export async function syncUserWithDatabase() {
     const user = await currentUser();
     if (!user) return null;
 
-    // Get primary email and username
+    // Get primary email and better display name
     const primaryEmail = user.emailAddresses.find(email => email.id === user.primaryEmailAddressId)?.emailAddress;
-    const username = user.username || user.firstName || primaryEmail?.split('@')[0];
+    const displayName = user.firstName 
+      ? `${user.firstName} ${user.lastName || ''}`.trim()
+      : primaryEmail?.split('@')[0] || user.username;
 
-    // Update user record with Clerk data
+    // Update user record with Clerk/Google data
     await sql`
       INSERT INTO users (
         clerk_id,
         email,
         username,
         display_name,
+        google_id,
         created_at,
         last_login,
         role
       ) VALUES (
         ${userId},
         ${primaryEmail},
-        ${username},
-        ${user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : username},
+        ${primaryEmail?.split('@')[0]},  -- Use email prefix as username
+        ${displayName},
+        ${user.externalAccounts[0]?.id || null},  -- Google ID if available
         NOW(),
         NOW(),
         'user'
@@ -37,14 +41,14 @@ export async function syncUserWithDatabase() {
         email = EXCLUDED.email,
         username = EXCLUDED.username,
         display_name = EXCLUDED.display_name,
+        google_id = EXCLUDED.google_id,
         last_login = NOW();
     `;
 
     return {
       id: userId,
       email: primaryEmail,
-      username,
-      displayName: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : username,
+      displayName,
     };
   } catch (error) {
     console.error('Error syncing user:', error);

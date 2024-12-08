@@ -45,11 +45,17 @@ export async function POST(request: Request) {
         text,
         user_id,
         contribution_id,
-        created_at
+        order_index,
+        created_at,
+        approved_by,
+        approved_at
       ) VALUES (
         ${contribution.rows[0].text},
         ${contribution.rows[0].user_id},
         ${contributionIdNum},
+        ${contribution.rows[0].page_number},
+        NOW(),
+        ${userId},
         NOW()
       );
     `;

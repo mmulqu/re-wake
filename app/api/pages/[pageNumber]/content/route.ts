@@ -12,23 +12,18 @@ export async function GET(
     // Debug query
     const debug = await sql`
       SELECT 
-        mt.id,
-        mt.text,
-        mt.order_index,
-        mt.contribution_id,
-        mt.created_at,
+        mt.id as master_text_id,
+        mt.user_id as master_text_user_id,
+        u.clerk_id,
         u.display_name,
-        u.clerk_id
+        u.email,
+        u.username
       FROM master_text mt
       LEFT JOIN users u ON mt.user_id = u.clerk_id
       WHERE mt.order_index = ${pageNumber};
     `;
 
-    console.log('Debug query results:', {
-      pageNumber,
-      resultsFound: debug.rows.length,
-      results: debug.rows
-    });
+    console.log('Debug JOIN results:', JSON.stringify(debug.rows, null, 2));
 
     // Main query
     const result = await sql`
@@ -40,9 +35,22 @@ export async function GET(
         mt.user_id,
         mt.created_at,
         mt.contribution_id,
-        COALESCE(u.display_name, u.username, u.clerk_id) as author_name
+        mt.approved_at,
+        COALESCE(
+          u.display_name,
+          u.email,
+          u.username,
+          u.clerk_id
+        ) as author_name,
+        COALESCE(
+          approver.display_name,
+          approver.email,
+          approver.username,
+          approver.clerk_id
+        ) as approver_name
       FROM master_text mt
       LEFT JOIN users u ON mt.user_id = u.clerk_id
+      LEFT JOIN users approver ON mt.approved_by = approver.clerk_id
       WHERE mt.order_index = ${pageNumber}
       ORDER BY mt.created_at ASC;
     `;

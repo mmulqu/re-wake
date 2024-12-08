@@ -138,7 +138,10 @@ export default function PageContent() {
                   className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6"
                 >
                   <div className="text-xs text-[#00ff00]/50 mb-2">
-                    Approved • Added by {content.author_name || content.user_id}
+                    Added by {content.author_name}
+                    {content.approver_name && (
+                      <span className="ml-2">• Approved by {content.approver_name}</span>
+                    )}
                     <span className="ml-2">
                       {new Date(content.created_at).toLocaleString()}
                     </span>
