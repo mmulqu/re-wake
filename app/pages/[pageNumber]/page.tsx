@@ -344,7 +344,38 @@ export default function PageContent() {
               {approvedContent.length > 0 ? (
                 approvedContent.map((content, index) => (
                   <div key={content.id} className="relative">
-                    <div className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6 cursor-text">
+                    <div 
+                      className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6 cursor-text"
+                      onClick={(e) => {
+                        // Get cursor position relative to this text block
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const relativeX = e.clientX - rect.left;
+                        const textWidth = e.currentTarget.offsetWidth;
+                        const position = Math.floor((relativeX / textWidth) * content.text.length);
+
+                        setInsertionPoint({
+                          position,
+                          previousTextId: content.id
+                        });
+
+                        // Visual indicator
+                        const cursor = document.createElement('div');
+                        cursor.className = 'absolute w-0.5 h-16 bg-[#00ff00] animate-pulse';
+                        cursor.style.left = `${e.clientX}px`;
+                        cursor.style.top = `${rect.top}px`;
+                        document.body.appendChild(cursor);
+                        setTimeout(() => cursor.remove(), 1000);
+
+                        // Show position indicator
+                        const indicator = document.createElement('div');
+                        indicator.className = 'fixed bg-[#00ff00]/90 text-black px-2 py-1 rounded text-xs';
+                        indicator.style.left = `${e.clientX}px`;
+                        indicator.style.top = `${rect.top - 20}px`;
+                        indicator.textContent = 'Insertion point set';
+                        document.body.appendChild(indicator);
+                        setTimeout(() => indicator.remove(), 1000);
+                      }}
+                    >
                       <div className="text-xs text-[#00ff00]/50 mb-2">
                         Added by {content.author_name}
                       </div>
