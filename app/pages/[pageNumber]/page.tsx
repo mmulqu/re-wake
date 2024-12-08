@@ -345,44 +345,53 @@ export default function PageContent() {
                 approvedContent.map((content) => (
                   <div key={content.id} className="relative">
                     <div 
-                      className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6"
-                      onMouseUp={(e) => {
-                        if (isAdmin) {
-                          const selection = window.getSelection()?.toString();
-                          if (selection) {
-                            setSelectedText(selection);
-                            // Position menu near mouse
-                            const menu = document.createElement('div');
-                            menu.style.position = 'absolute';
-                            menu.style.left = `${e.clientX}px`;
-                            menu.style.top = `${e.clientY}px`;
-                            document.body.appendChild(menu);
-                            setTimeout(() => menu.remove(), 100);
-                          }
-                        }
+                      className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6 cursor-text"
+                      onClick={(e) => {
+                        // Get cursor position relative to this text block
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const relativeX = e.clientX - rect.left;
+                        const textWidth = e.currentTarget.offsetWidth;
+                        const position = Math.floor((relativeX / textWidth) * content.text.length);
+
+                        setInsertionPoint({
+                          position,
+                          previousTextId: content.id
+                        });
+
+                        // Visual indicator
+                        const cursor = document.createElement('div');
+                        cursor.className = 'absolute w-0.5 h-16 bg-[#00ff00] animate-pulse';
+                        cursor.style.left = `${e.clientX}px`;
+                        cursor.style.top = `${rect.top}px`;
+                        document.body.appendChild(cursor);
+                        setTimeout(() => cursor.remove(), 1000);
+
+                        // Show position indicator
+                        const indicator = document.createElement('div');
+                        indicator.className = 'fixed bg-[#00ff00]/90 text-black px-2 py-1 rounded text-xs';
+                        indicator.style.left = `${e.clientX}px`;
+                        indicator.style.top = `${rect.top - 20}px`;
+                        indicator.textContent = 'Insertion point set';
+                        document.body.appendChild(indicator);
+                        setTimeout(() => indicator.remove(), 1000);
                       }}
                     >
                       <div className="text-xs text-[#00ff00]/50 mb-2">
                         Added by {content.author_name}
                       </div>
-                      <div className="whitespace-pre-wrap">{content.text}</div>
-                    </div>
-                    {selectedText && (
-                      <div className="absolute top-0 right-0 mt-2 mr-2">
-                        <ApprovalMenu 
-                          text={selectedText}
-                          onApprove={async () => {
-                            await approveContribution(content.id);
-                            setSelectedText(null);
-                            // Refresh content
-                            const contentRes = await fetch(`/api/pages/${pageNumber}/content`);
-                            const contentData = await contentRes.json();
-                            setApprovedContent(contentData);
-                          }}
-                          onReject={() => setSelectedText(null)}
-                        />
+                      <div className="whitespace-pre-wrap relative">
+                        {content.text}
+                        {insertionPoint?.previousTextId === content.id && (
+                          <div 
+                            className="absolute w-0.5 h-full bg-[#00ff00]/30 animate-pulse"
+                            style={{ 
+                              left: `${(insertionPoint.position / content.text.length) * 100}%`,
+                              top: 0
+                            }}
+                          />
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))
               ) : (
