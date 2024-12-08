@@ -7,13 +7,6 @@ interface MatrixCommentsProps {
   pageNumber: number;
 }
 
-// Map page numbers to discussion numbers
-const discussionMap: Record<number, number> = {
-  3: 8,  // Page 3 uses Discussion #8
-  4: 9,  // Page 4 uses Discussion #9
-  // Add more as needed
-};
-
 export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
   const [showDiscussions, setShowDiscussions] = useState(false);
 
@@ -36,13 +29,15 @@ export default function MatrixComments({ pageNumber }: MatrixCommentsProps) {
             repoId="R_kgDONaHjWA"
             category="Ideas"
             categoryId="DIC_kwDONaHjWM4ClAFi"
-            mapping="number"
-            term="1"
-            number={discussionMap[pageNumber]}
-            theme="dark"
-            lang="en"
+            mapping="specific"
+            term={`page-${pageNumber}`}
+            theme="transparent_dark"
             reactionsEnabled="1"
             emitMetadata="0"
+            inputPosition="top"
+            lang="en"
+            loading="eager"
+            strict="0"
           />
         </div>
       )}

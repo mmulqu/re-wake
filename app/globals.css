@@ -63,3 +63,10 @@ textarea {
 .cl-dividerText {
   @apply text-[#00ff00] !important;
 }
+
+.giscus-frame {
+  width: 100% !important;
+  border: 1px solid rgba(0, 255, 0, 0.2) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 0.5rem !important;
+}
