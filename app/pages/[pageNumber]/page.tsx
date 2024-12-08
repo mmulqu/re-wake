@@ -17,6 +17,7 @@ export default function PageContent() {
   const [editText, setEditText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedText, setSelectedText] = useState<string | null>(null);
 
   // Fetch both approved content and pending contributions
   useEffect(() => {
@@ -104,6 +105,23 @@ export default function PageContent() {
     }
   };
 
+  const ApprovalMenu = ({ text, onApprove, onReject }) => (
+    <div className="absolute bg-black border border-[#00ff00]/30 rounded-md p-2 shadow-lg">
+      <button 
+        onClick={onApprove}
+        className="block w-full text-left px-3 py-1 hover:bg-[#00ff00]/10 text-[#00ff00]"
+      >
+        Approve
+      </button>
+      <button 
+        onClick={onReject}
+        className="block w-full text-left px-3 py-1 hover:bg-red-500/10 text-red-500"
+      >
+        Reject
+      </button>
+    </div>
+  );
+
   return (
     <>
       <Head>
@@ -138,21 +156,37 @@ export default function PageContent() {
             {/* Approved Content */}
             <div className="space-y-6">
               {approvedContent.length > 0 ? (
-                approvedContent.map((content, index) => (
-                  <div 
-                    key={content.id}
-                    className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6"
-                  >
-                    <div className="text-xs text-[#00ff00]/50 mb-2">
-                      Added by {content.author_name}
-                      {content.approver_name && (
-                        <span className="ml-2">• Approved by {content.approver_name}</span>
-                      )}
-                      <span className="ml-2">
-                        {new Date(content.created_at).toLocaleString()}
-                      </span>
+                approvedContent.map((content) => (
+                  <div key={content.id} className="relative">
+                    <div 
+                      className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6"
+                      onMouseUp={() => {
+                        const selection = window.getSelection()?.toString();
+                        if (selection) setSelectedText(selection);
+                      }}
+                    >
+                      <div className="text-xs text-[#00ff00]/50 mb-2">
+                        Added by {content.author_name}
+                        {content.approver_name && (
+                          <span className="ml-2">• Approved by {content.approver_name}</span>
+                        )}
+                        <span className="ml-2">
+                          {new Date(content.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="whitespace-pre-wrap">{content.text}</div>
                     </div>
-                    <div className="whitespace-pre-wrap">{content.text}</div>
+                    {selectedText && (
+                      <ApprovalMenu 
+                        text={selectedText}
+                        onApprove={async () => {
+                          // Call API to approve
+                          await approveEdit(content.id, selectedText);
+                          setSelectedText(null);
+                        }}
+                        onReject={() => setSelectedText(null)}
+                      />
+                    )}
                   </div>
                 ))
               ) : (
@@ -162,26 +196,41 @@ export default function PageContent() {
               )}
             </div>
 
-            {/* Pending Contributions */}
-            {pendingContributions.length > 0 && (
-              <div className="mt-8 space-y-4">
-                <h2 className="text-xl font-mono text-red-500 mb-4">
-                  Pending Contributions
+            {/* Show pending edits */}
+            {user && pendingContributions.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-mono text-[#00ff00]/70 mb-4">
+                  Pending Edits
                 </h2>
                 {pendingContributions.map((contribution) => (
                   <div 
                     key={contribution.id}
-                    className="border border-red-500/30 rounded-lg p-4"
+                    className={`border rounded-lg p-4 mb-4 ${
+                      contribution.user_id === user.id 
+                        ? 'border-[#00ff00]/30 text-[#00ff00]'
+                        : 'border-yellow-500/30 text-yellow-500'
+                    }`}
                   >
-                    <div className="text-xs text-red-500/70 mb-2">
-                      Pending Review • Submitted by {contribution.author_name || contribution.user_id}
-                      <span className="ml-2">
-                        {new Date(contribution.created_at).toLocaleString()}
-                      </span>
+                    <div className="text-xs opacity-70 mb-2">
+                      By {contribution.author_name} • {new Date(contribution.created_at).toLocaleString()}
                     </div>
-                    <div className="font-mono text-red-500 whitespace-pre-wrap">
-                      {contribution.text}
-                    </div>
+                    <div className="whitespace-pre-wrap">{contribution.text}</div>
+                    {user.role === 'admin' && (
+                      <div className="mt-4 flex gap-2">
+                        <button 
+                          onClick={() => approveContribution(contribution.id)}
+                          className="px-3 py-1 bg-[#00ff00]/10 text-[#00ff00] rounded hover:bg-[#00ff00]/20"
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => rejectContribution(contribution.id)}
+                          className="px-3 py-1 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
