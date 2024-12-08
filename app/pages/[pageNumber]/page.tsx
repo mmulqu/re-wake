@@ -58,6 +58,63 @@ const ApprovalMenu: React.FC<ApprovalMenuProps> = ({ text, onApprove, onReject }
   </div>
 );
 
+const InsertionCursor = ({ position }: { position: { x: number; y: number } }) => (
+  <div 
+    className="fixed w-0.5 h-5 bg-[#00ff00] animate-pulse"
+    style={{ 
+      left: position.x,
+      top: position.y,
+      transform: 'translateX(-50%)'
+    }}
+  />
+);
+
+const InsertionPreview = ({ 
+  position: { x, y }, 
+  text, 
+  beforeText, 
+  afterText 
+}: {
+  position: { x: number; y: number };
+  text: string;
+  beforeText?: string;
+  afterText?: string;
+}) => (
+  <div 
+    className="fixed bg-black/90 border border-[#00ff00]/30 rounded-lg p-4 max-w-md"
+    style={{ 
+      left: x,
+      top: y + 20,
+      transform: 'translateX(-50%)'
+    }}
+  >
+    <div className="text-xs text-[#00ff00]/50 mb-2">Preview</div>
+    <div className="font-mono text-[#00ff00]/70">
+      {beforeText && <span>{beforeText}</span>}
+      <span className="text-[#00ff00] bg-[#00ff00]/10 px-1 rounded">
+        {text}
+      </span>
+      {afterText && <span>{afterText}</span>}
+    </div>
+  </div>
+);
+
+const PreviewMode = ({
+  contribution,
+  existingText,
+  onConfirm,
+  onCancel
+}: PreviewProps) => {
+  // Preview rendering logic
+};
+
+const DraggableContribution = ({
+  contribution,
+  onPositionChange
+}: DraggableProps) => {
+  // Drag and drop logic
+};
+
 export default function PageContent() {
   const { user } = useUser();
   const params = useParams();
@@ -69,6 +126,10 @@ export default function PageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [insertionPoint, setInsertionPoint] = useState<{
+    position: number;
+    previousTextId: number | null;
+  } | null>(null);
 
   // Fetch both approved content and pending contributions
   useEffect(() => {
@@ -96,8 +157,8 @@ export default function PageContent() {
   }, [pageNumber]);
 
   const handleContribute = async () => {
-    if (!user || !editText.trim()) {
-      setError("Please enter some text to contribute");
+    if (!user || !editText.trim() || !insertionPoint) {
+      setError("Please select where to insert the text and enter your contribution");
       return;
     }
 
@@ -120,6 +181,8 @@ export default function PageContent() {
           text: editText,
           pageNumber,
           userId: user.id,
+          insertionPoint: insertionPoint.position,
+          previousTextId: insertionPoint.previousTextId,
           themes: [],
           cultural_references: [],
           historical_context: '',
@@ -196,9 +259,25 @@ export default function PageContent() {
                   <div key={content.id} className="relative">
                     <div 
                       className="font-mono text-[#00ff00] border border-[#00ff00]/20 rounded-lg p-6"
-                      onMouseUp={() => {
-                        const selection = window.getSelection()?.toString();
-                        if (selection) setSelectedText(selection);
+                      onClick={(e) => {
+                        // Get cursor position relative to this text block
+                        const selection = window.getSelection();
+                        if (selection && selection.rangeCount > 0) {
+                          const range = selection.getRangeAt(0);
+                          const position = range.startOffset;
+                          setInsertionPoint({
+                            position,
+                            previousTextId: content.id
+                          });
+                          
+                          // Visual indicator of insertion point
+                          const cursor = document.createElement('div');
+                          cursor.className = 'absolute w-0.5 h-5 bg-[#00ff00] animate-pulse';
+                          cursor.style.left = `${e.clientX}px`;
+                          cursor.style.top = `${e.clientY}px`;
+                          document.body.appendChild(cursor);
+                          setTimeout(() => cursor.remove(), 1000);
+                        }
                       }}
                     >
                       <div className="text-xs text-[#00ff00]/50 mb-2">
@@ -232,34 +311,86 @@ export default function PageContent() {
             </div>
 
             {/* Show pending edits */}
-            {user && pendingContributions.length > 0 && (
+            {(user && (pendingContributions.length > 0) && (isAdmin || pendingContributions.some(c => c.user_id === user.id))) && (
               <div className="mt-8">
                 <h2 className="text-xl font-mono text-[#00ff00]/70 mb-4">
-                  Pending Edits
+                  Pending Edits {isAdmin && <span className="text-sm">({pendingContributions.length} total)</span>}
                 </h2>
                 {pendingContributions.map((contribution) => (
                   <div 
                     key={contribution.id}
-                    className={`border rounded-lg p-4 mb-4 ${
+                    className={`relative border rounded-lg p-4 mb-4 ${
                       contribution.user_id === user.id 
                         ? 'border-[#00ff00]/30 text-[#00ff00]'
-                        : 'border-yellow-500/30 text-yellow-500'
+                        : isAdmin 
+                          ? 'border-yellow-500/30 text-yellow-500'
+                          : 'hidden'  // Hide other users' contributions from non-admins
                     }`}
                   >
                     <div className="text-xs opacity-70 mb-2">
                       By {contribution.author_name} • {new Date(contribution.created_at).toLocaleString()}
+                      {isAdmin && contribution.user_id !== user.id && (
+                        <span className="ml-2 text-yellow-500">(Pending Review)</span>
+                      )}
                     </div>
-                    <div className="whitespace-pre-wrap">{contribution.text}</div>
+                    <div 
+                      className="whitespace-pre-wrap"
+                      onMouseUp={() => {
+                        if (isAdmin) {
+                          const selection = window.getSelection()?.toString();
+                          if (selection) setSelectedText(selection);
+                        }
+                      }}
+                    >
+                      {contribution.text}
+                    </div>
+                    
+                    {/* Approval Menu for selected text */}
+                    {isAdmin && selectedText && (
+                      <ApprovalMenu 
+                        text={selectedText}
+                        onApprove={async () => {
+                          await approveContribution(contribution.id);
+                          // Refresh pending contributions
+                          const pendingRes = await fetch(`/api/pages/${pageNumber}/pending`);
+                          const pendingData = await pendingRes.json();
+                          setPendingContributions(pendingData);
+                          setSelectedText(null);
+                        }}
+                        onReject={() => setSelectedText(null)}
+                      />
+                    )}
+
+                    {/* Quick approve/reject buttons */}
                     {isAdmin && (
                       <div className="mt-4 flex gap-2">
                         <button 
-                          onClick={() => approveContribution(contribution.id)}
+                          onClick={async () => {
+                            await approveContribution(contribution.id);
+                            // Refresh both approved and pending content
+                            const [contentRes, pendingRes] = await Promise.all([
+                              fetch(`/api/pages/${pageNumber}/content`),
+                              fetch(`/api/pages/${pageNumber}/pending`)
+                            ]);
+                            const [contentData, pendingData] = await Promise.all([
+                              contentRes.json(),
+                              pendingRes.json()
+                            ]);
+                            setApprovedContent(contentData);
+                            setPendingContributions(pendingData);
+                          }}
                           className="px-3 py-1 bg-[#00ff00]/10 text-[#00ff00] rounded hover:bg-[#00ff00]/20"
                         >
                           Approve
                         </button>
                         <button 
-                          onClick={() => rejectContribution(contribution.id)}
+                          onClick={async () => {
+                            await rejectContribution(contribution.id);
+                            // Refresh pending contributions
+                            const pendingRes = await fetch(`/api/pages/${pageNumber}/pending`);
+                            const pendingData = await pendingRes.json();
+                            setPendingContributions(pendingData);
+                          }}
                           className="px-3 py-1 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20"
                         >
                           Reject

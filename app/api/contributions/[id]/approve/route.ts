@@ -38,7 +38,10 @@ export async function POST(
     `;
 
     // Create master_text entry
-    await sql`
+    const masterText = await sql`
+      WITH previous_text AS (
+        SELECT text FROM master_text WHERE id = ${contribution.rows[0].previous_text_id}
+      )
       INSERT INTO master_text (
         text,
         user_id,
@@ -46,7 +49,8 @@ export async function POST(
         order_index,
         created_at,
         approved_by,
-        approved_at
+        approved_at,
+        position_after
       ) VALUES (
         ${contribution.rows[0].text},
         ${contribution.rows[0].user_id},
@@ -54,15 +58,52 @@ export async function POST(
         ${contribution.rows[0].page_number},
         NOW(),
         ${userId},
-        NOW()
+        NOW(),
+        ${contribution.rows[0].previous_text_id}
+      ) RETURNING id;
+    `;
+
+    // Update contribution status (but don't delete)
+    await sql`
+      UPDATE contributions 
+      SET status = 'approved'
+      WHERE id = ${contributionId};
+    `;
+
+    // Record the action
+    await sql`
+      INSERT INTO edit_actions (
+        contribution_id,
+        master_text_id,
+        action_type,
+        performed_by,
+        previous_status,
+        new_status
+      ) VALUES (
+        ${contributionId},
+        ${masterText.rows[0].id},
+        'approve',
+        ${userId},
+        'pending',
+        'approved'
       );
     `;
 
-    // Update contribution status
+    // Add notification
     await sql`
-      UPDATE contributions 
-      SET is_approved = true 
-      WHERE id = ${contributionId};
+      INSERT INTO notifications (
+        user_id,
+        type,
+        message,
+        contribution_id,
+        created_at
+      ) VALUES (
+        ${contribution.rows[0].user_id},
+        'approval',
+        'Your contribution has been approved!',
+        ${contributionId},
+        NOW()
+      );
     `;
 
     await sql`COMMIT`;
